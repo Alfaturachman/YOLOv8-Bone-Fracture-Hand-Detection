@@ -1,0 +1,7 @@
+names:
+- fracture
+nc: 1
+path: D:\Project Medical Object Detection\FracAtlas\yolo_dataset\original
+test: test/images
+train: train/images
+val: val/images

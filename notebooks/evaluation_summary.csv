@@ -1,0 +1,8 @@
+Metric,Value
+Precision,0.8162
+Recall,0.6167
+F1-Score,0.7025
+mAP@50,0.7506
+mAP@50-95,0.3998
+Best F1 Threshold,0.07
+Average Precision (PR),0.9022
