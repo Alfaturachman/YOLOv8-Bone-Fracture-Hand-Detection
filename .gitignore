@@ -1,6 +1,8 @@
 # Directories to ignore
 runs/
+runs-old/
 images/
+yolo_dataset_hand/
 yolo_dataset_hand_augmented/
 datasets/
 splits/

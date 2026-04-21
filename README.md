@@ -293,21 +293,6 @@ Different thresholds are used depending on the clinical scenario.
 | Non-Maximum Suppression (NMS) | IoU 0.5 – 0.7 | Remove duplicate detections            |
 | Minimum Box Area              | Optional      | Avoid extremely small false detections |
 
-## Hardware Requirements
-
-| Component | Minimum        | Recommended      |
-| --------- | -------------- | ---------------- |
-| GPU       | GTX 1660 (6GB) | RTX 3080 (10GB+) |
-| RAM       | 16 GB          | 32 GB            |
-| Storage   | 20 GB free     | SSD preferred    |
-
-### Estimated Training Time
-
-| GPU      | Time (100 epochs) |
-| -------- | ----------------- |
-| RTX 3050 | ~2-3 hours        |
-| RTX 3080 | ~1-1.5 hours      |
-
 ## Training Monitoring
 
 Training logs and plots are saved to `runs/detect/fricatlas_yolo8s/`:
@@ -317,31 +302,6 @@ Training logs and plots are saved to `runs/detect/fricatlas_yolo8s/`:
 - `confusion_matrix.png` - Confusion matrix
 - `weights/best.pt` - Best model checkpoint
 - `weights/last.pt` - Last checkpoint
-
-## Troubleshooting
-
-### CUDA Out of Memory
-
-```bash
-# In notebook, reduce batch size
-batch_size = 8
-
-# Or reduce image size
-imgsz = 1024
-```
-
-### Poor Performance
-
-1. Verify data preparation step completed successfully
-2. Check labels exist in `yolo_dataset/labels/train/`
-3. Increase training epochs to 150
-4. Adjust learning rate in the hyperparameters cell
-
-### No Detections
-
-- Lower confidence threshold: `conf=0.1`
-- Verify model training completed: Check `weights/best.pt` exists
-- Ensure correct class mapping in `fricatlas.yaml`
 
 ## License
 
