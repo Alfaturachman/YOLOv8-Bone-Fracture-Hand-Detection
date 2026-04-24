@@ -1,11 +1,15 @@
 # Directories to ignore
 runs/
 runs-old/
+runs-old-v8s-undersampling
 images/
 yolo_dataset_hand/
 yolo_dataset_hand_augmented/
+yolo_dataset_hand_oversampled/
+yolo_dataset_hand_undersampled/
 datasets/
 splits/
+scratch/
 
 # Model weights
 *.pt

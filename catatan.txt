@@ -1,0 +1,120 @@
+==================================================
+  TRAINING SUMMARY
+==================================================
+Best weights : /content/FracAtlas/runs/detect/fracatlas_yolo8s_augmented/weights/best.pt
+Last weights : /content/FracAtlas/runs/detect/fracatlas_yolo8s_augmented/weights/last.pt
+Best exists  : True
+
+Best epoch   : 98
+mAP@50       : 0.6765
+mAP@50-95    : 0.3447
+Recall       : 0.6179
+
+==================================================
+  EVALUATION SUMMARY
+==================================================
+                Metric  Value
+             Precision 0.8162
+                Recall 0.6167
+              F1-Score 0.7025
+                mAP@50 0.7506
+             mAP@50-95 0.3998
+     Best F1 Threshold   0.07
+Average Precision (PR) 0.9022
+
+==================================================
+  TRAINING CONFIGURATION
+==================================================
+# ─── PATHS ────────────────────────────────────────────────────────────────────
+BASE_DIR = Path("/content/FracAtlas")
+YAML_PATH = BASE_DIR / "fracatlas_hand_augmented.yaml"
+RUNS_DIR  = BASE_DIR / "runs" / "detect"
+
+# ─── MODEL ────────────────────────────────────────────────────────────────────
+# yolov8s is the balanced choice for medical imaging with augmented dataset.
+# Use 'yolo8n.pt' for quick experiments, 'yolo8l.pt' for max accuracy.
+MODEL_WEIGHTS = "yolov8s.pt"   # Will be downloaded automatically if not present
+RUN_NAME      = "fracatlas_yolo8s_augmented"
+
+# ─── CORE HYPERPARAMETERS ────────────────────────────────────────────────────
+IMGSZ      = 1024     # Keep large — X-rays have fine-detail fractures
+EPOCHS     = 100
+BATCH_SIZE = 16       # Reduce to 4 if CUDA OOM; increase to 16 if >16 GB VRAM
+PATIENCE   = 20       # Early stopping patience (epochs without improvement)
+WORKERS    = 4        # DataLoader workers
+
+# ─── MEDICAL-OPTIMISED AUGMENTATION ──────────────────────────────────────────
+# Conservative augmentations that respect anatomical structure
+AUGMENTATION = dict(
+    degrees   = 10.0,   # ±10° rotation — simulates patient positioning
+    translate = 0.05,   # Small translation
+    scale     = 0.2,    # Mild scale variation
+    shear     = 0.0,    # Disabled — distorts anatomy
+    perspective = 0.0,  # Disabled — X-rays are projections
+    flipud    = 0.0,    # Disabled — anatomical orientation matters
+    fliplr    = 0.5,    # OK for symmetric anatomy (arms/legs)
+    mosaic    = 0.5,    # Reduced from 1.0 — helps but can create artifacts
+    mixup     = 0.1,    # Light mixup
+    copy_paste = 0.0,   # Disabled for medical
+    hsv_h     = 0.0,    # X-rays are grayscale — no hue shift
+    hsv_s     = 0.0,    # No saturation shift
+    hsv_v     = 0.2,    # Mild brightness variation (simulate exposure differences)
+)
+
+print("- Configuration loaded")
+print(f"   Model    : {MODEL_WEIGHTS}")
+print(f"   YAML     : {YAML_PATH.resolve()}")
+print(f"   Image sz : {IMGSZ}px")
+print(f"   Epochs   : {EPOCHS} (patience={PATIENCE})")
+print(f"   Batch    : {BATCH_SIZE}")
+
+ Configuration loaded
+   Model    : yolov8s.pt
+   YAML     : /content/FracAtlas/fracatlas_hand_augmented.yaml
+   Image sz : 1024px
+   Epochs   : 100 (patience=20)
+   Batch    : 16
+
+==================================================
+  TRAINING CONFIGURATION
+==================================================
+# ─── TRAINING ─────────────────────────────────────────────────────────────────
+# All augmentation kwargs are passed directly to model.train()
+results = model.train(
+    data       = str(YAML_PATH),
+    imgsz      = IMGSZ,
+    epochs     = EPOCHS,
+    batch      = BATCH_SIZE,
+    patience   = PATIENCE,
+    workers    = WORKERS,
+    project    = str(RUNS_DIR),
+    name       = RUN_NAME,
+    exist_ok   = True,          # Overwrite if rerunning
+    pretrained = True,
+    optimizer  = "auto",        # Auto-selects SGD or AdamW
+    lr0        = 0.01,
+    lrf        = 0.01,
+    momentum   = 0.937,
+    weight_decay = 0.0005,
+    warmup_epochs = 5,          # Extended warmup for stability
+    warmup_momentum = 0.8,
+    box        = 7.5,           # Box loss gain
+    cls        = 0.5,           # Class loss gain
+    dfl        = 1.5,
+    # Augmentation
+    **AUGMENTATION,
+    # Output
+    save       = True,
+    save_period = 10,           # Save checkpoint every 10 epochs
+    plots      = True,
+    verbose    = True,
+    amp        = True,          # Automatic Mixed Precision (saves VRAM)
+    cache      = False,         # Set True if RAM > 32 GB to speed up
+    rect       = False,         # Rectangular training — disable for mixed sizes
+    cos_lr     = True,          # Cosine LR scheduler
+    label_smoothing = 0.1,      # Slight label smoothing helps generalisation
+    val        = True,
+)
+
+print("\n- Training complete!")
+print(f"Best weights saved to: {RUNS_DIR / RUN_NAME / 'weights' / 'best.pt'}")

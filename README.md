@@ -45,39 +45,6 @@ After filtering for hand images only (see Notebook 01, Section 2.3):
 
 _Note: Exact counts may vary slightly. Run Notebook 01 to see precise statistics._
 
-## Quick Start
-
-### Prerequisites
-
-| Requirement     | Version    | How to Check          |
-| --------------- | ---------- | --------------------- |
-| Python          | 3.9 - 3.11 | `python --version`    |
-| CUDA (optional) | 11.7+      | `nvidia-smi`          |
-| GPU Memory      | 6GB+       | Required for training |
-
-```bash
-# Create virtual environment (recommended)
-python -m venv venv
-
-# Activate on Windows
-venv\Scripts\activate
-
-# Activate on Linux/Mac
-source venv/bin/activate
-```
-
-### 1. Installation
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Verify installation
-python -c "from ultralytics import YOLO; print('YOLO installed')"
-```
-
----
-
 ## Implementation Pipeline
 
 The workflow is divided into four sequential stages, each with its own Jupyter Notebook for transparency and reproducibility.
@@ -145,28 +112,20 @@ FracAtlas/
 │   ├── 02_training_yolov8.ipynb
 │   ├── 03_evaluation.ipynb
 │   ├── 04_inference.ipynb
-├── yolo_dataset/               # Datasets Hand Only
-│   ├── images/
-│   │   ├── train/
-│   │   ├── val/
-│   │   └── test/
-│   └── labels/
-│       ├── train/
-│       ├── val/
-│       └── test/
 ```
 
 ## Configuration
 
 ### Model Variants
 
-| Model       | Parameters | Speed    | Accuracy |
-| ----------- | ---------- | -------- | -------- |
-| `yolo8n.pt` | ~2.5M      | Fastest  | Lower    |
-| `yolo8s.pt` | ~7M        | Fast     | Good     |
-| `yolo8s.pt` | ~20M       | Balanced | Better   |
-| `yolo8l.pt` | ~43M       | Slow     | High     |
-| `yolo8x.pt` | ~68M       | Slowest  | Best     |
+| Model Variant | Optimizer | Parameters | Speed    | Accuracy |
+| ------------- | --------- | ---------- | -------- | -------- |
+| `yolo8s.pt`   | SGD       | ~7M        | Fast     | Good     |
+| `yolo8s.pt`   | Adam      | ~7M        | Fast     | Good     |
+| `yolo8s.pt`   | AdamW     | ~7M        | Fast     | Good     |
+| `yolo8m.pt`   | SGD       | ~20M       | Balanced | Better   |
+| `yolo8m.pt`   | Adam      | ~20M       | Balanced | Better   |
+| `yolo8m.pt`   | AdamW     | ~20M       | Balanced | Better   |
 
 ### Key Hyperparameters
 
