@@ -1,7 +1,8 @@
 # Directories to ignore
 runs/
 runs-old/
-runs-old-v8s-undersampling
+runs-old-v8s-adamw/
+runs-old-v8m-adamw/
 images/
 yolo_dataset_hand/
 yolo_dataset_hand_augmented/
@@ -10,6 +11,18 @@ yolo_dataset_hand_undersampled/
 datasets/
 splits/
 scratch/
+
+# ignore files all jpg and png in notebooks folder
+notebooks/*.jpg
+notebooks/*.png
+notebooks/*.jpeg
+
+# ignore files all jpg and png in dataset folder
+*.jpg
+*.png
+*.jpeg
+
+.qwen
 
 # Model weights
 *.pt

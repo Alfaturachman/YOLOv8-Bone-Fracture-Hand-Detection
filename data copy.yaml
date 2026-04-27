@@ -1,6 +1,0 @@
-path: D:\Project Medical Object Detection\FracAtlas\yolo_dataset
-train: images/train
-val: images/val
-test: images/test
-names:
-    - fracture
