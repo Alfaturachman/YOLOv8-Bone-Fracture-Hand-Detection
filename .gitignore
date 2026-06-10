@@ -1,8 +1,10 @@
-# Directories to ignore
+# ─── Directories ──────────────────────────────────────────────────────────────
+# Training outputs (large binary files, regeneratable)
 runs/
-runs-old/
-runs-old-v8s-adamw/
-runs-old-v8m-adamw/
+runs-old-v8s-oversampled/
+runs-old-v8m-oversampled/
+
+# Dataset directories (not tracked — download separately or run Notebook 01)
 images/
 yolo_dataset_hand/
 yolo_dataset_hand_augmented/
@@ -10,38 +12,36 @@ yolo_dataset_hand_oversampled/
 yolo_dataset_hand_undersampled/
 datasets/
 splits/
+
+# Development scratch scripts
 scratch/
 
-# ignore files all jpg and png in notebooks folder
-notebooks/*.jpg
-notebooks/*.png
-notebooks/*.jpeg
-
-# ignore files all jpg and png in dataset folder
+# ─── Image / Binary outputs ────────────────────────────────────────────────────
+# Ignore generated images (notebooks, root-level outputs)
 *.jpg
-*.png
 *.jpeg
+*.png
 
-.qwen
-
-# Model weights
+# ─── Model Weights ────────────────────────────────────────────────────────────
 *.pt
 *.pth
 *.onnx
 
-# Archives
+# ─── Archives ─────────────────────────────────────────────────────────────────
 *.zip
 
-# Python
+# ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 .env
 .venv/
 
-# Jupyter
+# ─── Jupyter ──────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# OS
+# ─── IDE / OS ─────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+.qwen
+.gemini/

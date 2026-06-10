@@ -1,280 +1,267 @@
-# FracAtlas - yolov8s Fracture Detection
+# Hand Bone Fracture Detection Using YOLOv8
 
-Bone Fracture Localization in X-ray Images Using the yolov8s Deep Learning Object Detection Model on the FracAtlas Dataset
+**Comparative Analysis of YOLOv8s and YOLOv8m with Oversampling Strategy for Hand Bone Fracture Detection on X-Ray Images Using the FracAtlas Dataset**
 
-> **Note:** This project has been filtered to focus specifically on **hand fracture detection** only, as per academic supervision requirements.
+> This project is developed for a **Sinta 3 journal submission**. The goal is to systematically compare YOLOv8s (Small) and YOLOv8m (Medium) for detecting hand bone fractures on X-ray images from the FracAtlas dataset, using a medically-optimized preprocessing pipeline with oversampling to handle class imbalance.
 
-## Dataset Overview
+---
 
-| Property              | Value / Description                                 |
-| :-------------------- | :-------------------------------------------------- |
-| **Total Images**      | 4,084 X-rays (original FracAtlas)                   |
-| **Filtered Images**   | Hand images only (~1,538 images)                    |
-| **Resolution**        | ~1760 x 2140 pixels                                 |
-| **Target Class**      | 1 (`fracture`)                                      |
-| **Annotation Format** | Bounding box in YOLO (.txt)                         |
-| **Training Split**    | 70% Train \| 15% Val \| 15% Test (stratified split) |
+## Research Overview
 
-### Data Distribution (Original FracAtlas)
+| Property                     | Value                                                |
+| :--------------------------- | :--------------------------------------------------- |
+| **Task**                     | Object Detection (Fracture Localization)             |
+| **Dataset**                  | FracAtlas — Hand subset only                         |
+| **Models Compared**          | YOLOv8s (Small) vs. YOLOv8m (Medium)                 |
+| **Class Imbalance Handling** | Oversampling on training set                         |
+| **Framework**                | Ultralytics YOLOv8                                   |
+| **Evaluation**               | mAP@50, Recall, Precision, F1, FPS, Confusion Matrix |
 
-- **Fractured images**: 717 (17.6%) images with fracture annotations
-- **Non-fractured images**: 3,366 (82.4%) images without fractures
-- **Body Part Distribution:**
-    - **Hand:** 1,538 ✓ **(Used in this project)**
-    - **Leg:** 2,273
-    - **Hip:** 338
-    - **Shoulder:** 349
-    - **Mixed:** 398
-- **View Type Distribution:**
-    - **Frontal:** 2,503
-    - **Lateral:** 1,492
-    - **Oblique:** 418
-- **Special Categories:**
-    - **Hardware:** 99
-    - **Multi-scan:** 396
+---
 
-### Hand-Only Dataset Statistics
+## Dataset
 
-After filtering for hand images only (see Notebook 01, Section 2.3):
+### Source: FracAtlas (Hand Subset Only)
 
 | Category               | Count  | Percentage |
 | :--------------------- | :----- | :--------- |
 | **Hand Fractured**     | ~267   | ~17.4%     |
 | **Hand Non-fractured** | ~1,271 | ~82.6%     |
-| **Total Hand**         | ~1,538 | 100%       |
+| **Total Hand Images**  | ~1,538 | 100%       |
 
-_Note: Exact counts may vary slightly. Run Notebook 01 to see precise statistics._
+Original FracAtlas contains 4,083 X-rays across multiple body parts (Hand, Leg, Hip, Shoulder, Mixed). This project uses **hand images only** to eliminate confounding features from other anatomical regions.
 
-## Implementation Pipeline
+### After Oversampling (Training Set Only)
 
-The workflow is divided into four sequential stages, each with its own Jupyter Notebook for transparency and reproducibility.
+| Category                  | Count     | Percentage |
+| :------------------------ | :-------- | :--------- |
+| Fractured (train)         | 920       | 54.4%      |
+| Non-fractured (train)     | 770       | 45.6%      |
+| **Total training images** | **1,690** | —          |
+| Val images                | 362       | —          |
+| Test images               | 362       | —          |
+| **Total dataset**         | **2,414** | —          |
 
-### Step 1 - Data Preparation
-
-- **File:** `notebooks/01_data_preparation.ipynb`
-- **Action:** Converts raw files into the standard YOLO directory structure.
-- **Output:** `yolo_dataset/` folder with images/labels partitions.
-
-### Step 2 - Model Training
-
-- **File:** `notebooks/02_training_yolov8.ipynb`
-- **Action:** Trains the `yolo8s.pt` model with medical-optimized augmentations.
-- **Output:** `runs/detect/train/weights/best.pt`.
-- **Framework:** Ultralytics
-- **Model:** `yolo8s.pt` (Pre-trained on COCO)
-- **Hyperparameters:**
-    - **Image Size:** 1024 pixels
-    - **Epochs:** 100 (with early stopping)
-    - **Batch Size:** 8 (adjustable based on VRAM)
-    - **Optimizer:** Auto (SGD/AdamW)
-    - **Augmentation:** Standard yolov8 augmentations (mosaic, flip, scale).
-
-### Step 3 - Quantitative Evaluation
-
-- **File:** `notebooks/03_evaluation.ipynb`
-- **Action:** Validates performance using Precision, Recall, and mAP metrics.
-- **Visuals:** Confusion Matrix and PR Curves.
-
-### Step 4 - Visual Inference
-
-- **File:** `notebooks/04_inference.ipynb`
-- **Action:** Runs the trained model on unseen test images to verify clinical utility.
-- **Output:** Predicted images and annotated X-rays with detected fracture bounding boxes.
+> Validation and Test sets use the **original unmodified distribution** to ensure unbiased evaluation.
 
 ---
 
-**Important:**
+## Models
 
-- Complete each notebook before moving to the next
-- Notebook 01 must finish successfully before running Notebook 02
-- Each notebook is self-contained with clear outputs
+| Property       | YOLOv8s (Small)    | YOLOv8m (Medium)   |
+| :------------- | :----------------- | :----------------- |
+| Parameters     | ~11.2M             | ~25.9M             |
+| GFLOPs (640px) | 28.6               | 79.1               |
+| Pretrained on  | COCO (80 classes)  | COCO (80 classes)  |
+| Fine-tuned for | 1 class (fracture) | 1 class (fracture) |
+
+---
+
+## Results
+
+### Accuracy Metrics (Val Set — Best Epoch)
+
+| Metric     | YOLOv8s   | YOLOv8m   |
+| :--------- | :-------- | :-------- |
+| **mAP@50** | **0.847** | 0.838     |
+| mAP@50-95  | **0.444** | 0.429     |
+| **Recall** | **0.780** | 0.726     |
+| Precision  | 0.891     | **0.912** |
+| Best Epoch | 100       | 98        |
+
+### Inference Speed (GPU: RTX 3050 4GB)
+
+| Model   | FPS | Latency (ms) |
+| :------ | :-- | :----------- |
+| YOLOv8s | TBD | TBD          |
+| YOLOv8m | TBD | TBD          |
+
+_Results to be filled after running Cell 8 in the training notebooks._
+
+---
+
+## Implementation Pipeline
+
+### Notebook Sequence
+
+```
+01b_hand_dataset.ipynb
+  → Filter hand-only images from FracAtlas
+  → Apply stratified split (70/15/15)
+  → Apply oversampling on training set
+  → Output: yolo_dataset_hand_oversampled/
+
+02a_training_yolov8s_oversampled.ipynb
+  → Train YOLOv8s on oversampled dataset
+  → Benchmark FPS (Cell 8)
+  → Evaluate on test set + confusion matrix (Cell 9)
+  → Qualitative visualization (Cell 10)
+  → Output: runs-old-v8s-oversampled/
+
+02a_training_yolov8m_oversampled.ipynb
+  → Train YOLOv8m on oversampled dataset
+  → Benchmark FPS (Cell 8)
+  → Evaluate on test set + confusion matrix (Cell 9)
+  → Qualitative visualization (Cell 10)
+  → Output: runs-old-v8m-oversampled/
+```
+
+### Running Order
+
+1. Run `01b_hand_dataset.ipynb` to prepare dataset _(if not done yet)_
+2. Run `02a_training_yolov8s_oversampled.ipynb` — **training already complete**, run Cells 8–10 for journal outputs
+3. Run `02a_training_yolov8m_oversampled.ipynb` — **training already complete**, run Cells 8–10 for journal outputs
+
+---
 
 ## Project Structure
 
 ```
 FracAtlas/
-├── images/                     # Original Datasets
-│   ├── Fractured/              # Fractured X-rays
-│   ├── Non_fractured/          # Non-fractured X-rays
-├── Annotations/
-│   └── YOLO/                   # YOLO format labels
-├── splits/
-│   ├── train.csv               # Training split
-│   ├── val.csv                 # Validation split
-│   └── test.csv                # Test split
-├── runs/
-│   └── detect/                 # Training outputs
-├── requirements.txt
-├── fricatlas.yaml              # # YOLO dataset config
-├── dataset.csv
+│
+├── images/                              # [git-ignored] Original FracAtlas images
+│   ├── Fractured/
+│   └── Non_fractured/
+│
+├── Annotations/YOLO/                    # YOLO format label files (.txt)
+│
+├── yolo_dataset_hand_oversampled/       # [git-ignored] Prepared dataset
+│   ├── train/images/ & labels/
+│   ├── val/images/   & labels/
+│   └── test/images/  & labels/
+│
+├── runs-old-v8s-oversampled/            # [git-ignored] YOLOv8s training outputs
+│   └── detect/fracatlas_yolov8s_adamw/
+│       ├── weights/best.pt
+│       ├── weights/last.pt
+│       ├── results.csv
+│       └── confusion_matrix.png
+│
+├── runs-old-v8m-oversampled/            # [git-ignored] YOLOv8m training outputs
+│   └── detect/fracatlas_yolov8m_adamw/
+│       ├── weights/best.pt
+│       ├── weights/last.pt
+│       ├── results.csv
+│       └── confusion_matrix.png
+│
 ├── notebooks/
-│   ├── 01_data_preparation.ipynb
-│   ├── 02_training_yolov8.ipynb
-│   ├── 03_evaluation.ipynb
-│   ├── 04_inference.ipynb
+│   ├── 01b_hand_dataset.ipynb           # Data preparation + oversampling
+│   ├── 02a_training_yolov8s_oversampled.ipynb   # YOLOv8s training + eval
+│   └── 02a_training_yolov8m_oversampled.ipynb   # YOLOv8m training + eval
+│
+├── fracatlas_hand_oversampled.yaml      # YOLO dataset config (oversampled)
+├── fracatlas_hand.yaml                  # YOLO dataset config (original)
+├── paper_draft.md                       # Research paper draft
+├── dataset.csv                          # Full dataset metadata
+├── requirements.txt
+├── .gitignore
+└── README.md
 ```
 
-## Configuration
+---
 
-### Model Variants
+## Training Configuration
 
-| Model Variant | Optimizer | Parameters | Speed    | Accuracy |
-| ------------- | --------- | ---------- | -------- | -------- |
-| `yolo8s.pt`   | SGD       | ~7M        | Fast     | Good     |
-| `yolo8s.pt`   | Adam      | ~7M        | Fast     | Good     |
-| `yolo8s.pt`   | AdamW     | ~7M        | Fast     | Good     |
-| `yolo8m.pt`   | SGD       | ~20M       | Balanced | Better   |
-| `yolo8m.pt`   | Adam      | ~20M       | Balanced | Better   |
-| `yolo8m.pt`   | AdamW     | ~20M       | Balanced | Better   |
+### Hyperparameters (Both Models)
 
-### Key Hyperparameters
+| Parameter       | Value | Notes                                           |
+| :-------------- | :---- | :---------------------------------------------- |
+| `optimizer`     | AdamW | More stable than SGD for small medical datasets |
+| `lr0`           | 0.001 | Lower than default (0.01) to avoid overshooting |
+| `lrf`           | 0.01  | Final LR ratio with cosine scheduler            |
+| `epochs`        | 100   | With early stopping (`patience=20`)             |
+| `imgsz`         | 640   | Balanced detail vs. VRAM constraint (4GB)       |
+| `batch`         | 4     | Limited by VRAM                                 |
+| `cos_lr`        | True  | Smooth cosine decay                             |
+| `warmup_epochs` | 5     | Extended warmup for stability                   |
+| `amp`           | True  | Automatic Mixed Precision                       |
 
-```python
-# Learning rate
-lr0: 0.01
-lrf: 0.01
+### Augmentation Strategy (X-Ray Optimized)
 
-# Augmentation (medical-image optimized)
-degrees: 10.0        # Limited rotation
-translate: 0.1       # Small translation
-scale: 0.5           # Scale variation
-shear: 0.0           # Disabled (anatomical)
-flipud: 0.0          # Disabled (anatomical orientation)
-fliplr: 0.5          # Horizontal flip OK
-mosaic: 1.0          # Mosaic augmentation
-mixup: 0.1           # Light mixup
+| Parameter       | Value   | Reason                                              |
+| :-------------- | :------ | :-------------------------------------------------- |
+| `degrees`       | 10.0°   | Simulate patient positioning variation              |
+| `fliplr`        | 0.5     | Safe for symmetric hand anatomy                     |
+| `flipud`        | **0.0** | Disabled — proximal/distal bone orientation matters |
+| `shear`         | **0.0** | Disabled — anatomical distortion                    |
+| `perspective`   | **0.0** | Disabled — X-rays are orthogonal projections        |
+| `mosaic`        | 0.5     | Reduced from 1.0 — avoids medical image artifacts   |
+| `mixup`         | 0.1     | Light regularization                                |
+| `copy_paste`    | **0.0** | Disabled — invalid for medical domain               |
+| `hsv_h / hsv_s` | **0.0** | Disabled — X-rays are grayscale                     |
+| `hsv_v`         | 0.2     | Simulate X-ray exposure variation                   |
+
+---
+
+## Journal Outputs Checklist
+
+The following outputs are required for journal submission (Sinta 3):
+
+| Output                               | Source                 | Status                           |
+| :----------------------------------- | :--------------------- | :------------------------------- |
+| mAP@50, mAP@50-95, Recall, Precision | `results.csv`          | ✅ Done                          |
+| Training loss curves (box/cls/dfl)   | `results.png`          | ✅ Done                          |
+| Confusion matrix (val set)           | `confusion_matrix.png` | ✅ Done (auto-generated by YOLO) |
+| **Inference FPS**                    | Notebook Cell 8        | ⏳ Run Cell 8                    |
+| **Confusion matrix (test set)**      | Notebook Cell 9        | ⏳ Run Cell 9                    |
+| **Qualitative prediction samples**   | Notebook Cell 10       | ⏳ Run Cell 10                   |
+
+---
+
+## Environment
+
+| Component   | Version                           |
+| :---------- | :-------------------------------- |
+| Python      | 3.10.19                           |
+| PyTorch     | 2.7.1+cu118                       |
+| Ultralytics | 8.4.63                            |
+| CUDA        | 11.8                              |
+| GPU         | NVIDIA RTX 3050 Laptop (4GB VRAM) |
+| OS          | Windows 11                        |
+
+### Setup
+
+```bash
+# Create and activate conda environment
+conda create -n yolo python=3.10
+conda activate yolo
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Or install manually
+pip install ultralytics torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## Expected Metrics
-
 ---
-
-### Target Performance Metrics
-
-Evaluate the trained model using the following performance metrics to ensure reliable medical object detection results:
-
-| Metric    | Rationale                                                                     |
-| --------- | ----------------------------------------------------------------------------- |
-| mAP@50    | Measures detection accuracy with IoU threshold 0.50 (high overlap confidence) |
-| mAP@50–95 | Measures localization precision across multiple IoU thresholds                |
-| Recall    | Ensures minimal false negatives in medical diagnosis                          |
-| Precision | Ensures minimal false positives in detection                                  |
-| F1-Score  | Provides a balanced measurement between precision and recall                  |
-
----
-
-### Required Evaluation Visualizations
-
-Generate the following evaluation graphs and visualizations based on the test dataset results:
-
-1. **Precision–Recall Curve**
-    - Plot precision vs recall for each class and overall model performance.
-
-2. **Confusion Matrix**
-    - Display the confusion matrix showing True Positives, False Positives, False Negatives, and True Negatives for each class.
-
-3. **mAP Curve**
-    - Visualize mAP performance across IoU thresholds (0.50–0.95).
-
-4. **F1-Score Curve**
-    - Plot F1-score as a function of confidence threshold.
-
-5. **Precision Curve**
-    - Plot precision vs confidence threshold.
-
-6. **Recall Curve**
-    - Plot recall vs confidence threshold.
-
-7. **Training Metrics Graph**
-    - Display training vs validation performance over epochs including:
-        - Loss curves (box_loss, cls_loss, dfl_loss)
-        - mAP@50
-        - mAP@50–95
-
----
-
-### Output Requirement
-
-Save and export all evaluation graphs as image files for analysis and reporting, including:
-
-- `precision_recall_curve.png`
-- `confusion_matrix.png`
-- `map_curve.png`
-- `f1_curve.png`
-- `precision_curve.png`
-- `recall_curve.png`
-- `training_metrics.png`
-
-These visualizations will be used to analyze model performance and support results in a scientific publication.
-
----
-
-_Actual performance depends on training duration and hyperparameters_
 
 ## Medical Imaging Considerations
 
-### Augmentation Strategy
+### Why Recall is Prioritized
 
-| Augmentation    | Setting        | Rationale                                      |
-| :-------------- | :------------- | :--------------------------------------------- |
-| Vertical Flip   | Disabled       | Anatomical orientation matters                 |
-| Horizontal Flip | Optional       | Acceptable for symmetric anatomy (arms/legs)   |
-| Perspective     | Disabled       | X-rays are projection images                   |
-| Shear           | Disabled       | Preserves anatomical structure                 |
-| HSV             | Light          | X-rays are grayscale                           |
-| Rotation        | Limited (±10°) | Simulates slight patient positioning variation |
-| Translation     | Small (≤5%)    | Simulates minor patient shift                  |
-| Scaling         | 0.9 – 1.1      | Simulates distance variation                   |
+In fracture detection, a **False Negative** (missed fracture) is far more dangerous than a **False Positive** (unnecessary follow-up). A model with high Precision but low Recall is clinically unacceptable. This is why:
 
-### Class Imbalance Handling
+- Oversampling is applied to prevent the model from biasing toward "non-fracture"
+- Recall is the **primary clinical metric** in Results and Discussion
 
-Fracture datasets often contain more normal bones than fractures.
+### Confidence Threshold Guidelines
 
-| Technique     | Setting                       |
-| ------------- | ----------------------------- |
-| Weighted Loss | Enabled                       |
-| Data Sampling | Balanced sampling if possible |
+| Scenario           | Threshold   | Goal                                       |
+| :----------------- | :---------- | :----------------------------------------- |
+| Screening (IGD)    | 0.10 – 0.20 | Maximize recall, minimize missed fractures |
+| Diagnostic support | 0.25 – 0.40 | Balanced precision and recall              |
+| Clinical decision  | ≥ 0.50      | High precision for direct clinical use     |
 
-### Confidence Thresholds
+---
 
-Different thresholds are used depending on the clinical scenario.
+## References
 
-| Use Case  | Confidence  | Goal                                         |
-| --------- | ----------- | -------------------------------------------- |
-| Screening | 0.10 – 0.20 | Maximize recall to avoid missed fractures    |
-| Diagnosis | 0.25 – 0.40 | Balanced precision and recall                |
-| Clinical  | ≥0.50       | High precision for clinical decision support |
+- **FracAtlas dataset:** Shadmand et al. (2023). _FracAtlas: A Dataset for Fracture Classification, Localization and Segmentation._ Scientific Data.
+- **Ultralytics YOLOv8:** Jocher, G. et al. (2023). _Ultralytics YOLOv8._ GitHub.
+- **Class imbalance:** Buda, M., Maki, A., & Mazurowski, M.A. (2018). _A systematic study of the class imbalance problem in convolutional neural networks._ Neural Networks, 106, 249–259.
 
-### Post-Processing
-
-| Method                        | Setting       | Purpose                                |
-| ----------------------------- | ------------- | -------------------------------------- |
-| Non-Maximum Suppression (NMS) | IoU 0.5 – 0.7 | Remove duplicate detections            |
-| Minimum Box Area              | Optional      | Avoid extremely small false detections |
-
-## Training Monitoring
-
-Training logs and plots are saved to `runs/detect/fricatlas_yolo8s/`:
-
-- `results.csv` - Epoch-by-epoch metrics
-- `results.png` - Training curves
-- `confusion_matrix.png` - Confusion matrix
-- `weights/best.pt` - Best model checkpoint
-- `weights/last.pt` - Last checkpoint
+---
 
 ## License
 
-This project is for research and educational purposes. Please ensure compliance with medical data regulations when using patient data.
-
-## Acknowledgments
-
-- **yolov8**: Ultralytics YOLO framework
-- **FracAtlas**: Bone fracture X-ray dataset
-
-## Support
-
-For issues or questions:
-
-1. Check existing issues in the repository
-2. Review Ultralytics documentation: https://docs.ultralytics.com
-3. Verify data preparation completed successfully
+For research and educational purposes only. Ensure compliance with institutional data regulations when using patient imaging data.
