@@ -45,3 +45,6 @@ __pycache__/
 Thumbs.db
 .qwen
 .gemini/
+
+catatan.txt
+gradcam_output/*

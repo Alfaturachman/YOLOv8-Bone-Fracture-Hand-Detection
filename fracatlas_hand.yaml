@@ -1,4 +1,4 @@
-path: D:/Project Medical Object Detection/FracAtlas/yolo_dataset_hand
+path: D:\Project Medical Object Detection\FracAtlas\yolo_dataset_hand
 train: train/images
 val: val/images
 test: test/images

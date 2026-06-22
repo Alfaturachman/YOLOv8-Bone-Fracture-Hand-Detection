@@ -1,126 +1,57 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-from pathlib import Path
+import numpy as np
+import seaborn as sns  # Baris yang salah impor sudah dihapus
 
-# ═══════════════════════════════════════════════════════
-# CONFIG
-# ═══════════════════════════════════════════════════════
-
-MODELS = {
-    "YOLOv8m-AdamW": {"TP": 183, "FP": 32, "FN": 70, "TN": 156},
-    "YOLOv8s-AdamW": {"TP": 184, "FP": 26, "FN": 69, "TN": 157},
+# Data matriks berdasarkan nilai Recall tabel Anda
+matrices = {
+    "fracatlas_yolov8s_imbalance": np.array([[0.48, 1.00], [0.52, 0.00]]),
+    "fracatlas_yolov8m_imbalance": np.array([[0.47, 1.00], [0.53, 0.00]]),
+    "fracatlas_yolov8s_oversampled": np.array([[0.72, 1.00], [0.28, 0.00]]),
+    "fracatlas_yolov8m_oversampled": np.array([[0.81, 1.00], [0.19, 0.00]]),
 }
 
-CLASS_LABELS = ["Non-Fracture", "Fracture"]
+labels = ["fracture", "background"]
 
-TITLE_TEMPLATE = "Confusion Matrix"
+# Melakukan looping untuk membuat dan menyimpan setiap gambar secara terpisah
+for title, matrix in matrices.items():
+    # Membuat 1 canvas baru ukuran 7x6 inci untuk setiap model
+    fig, ax = plt.subplots(figsize=(7, 6))
 
-# 🔥 NORMALIZED MODE (untuk jurnal)
-NORMALIZE = "true"   # "true" | "pred"
+    # Membuat kustomisasi teks agar angka 0.00 menjadi string kosong ""
+    annot_labels = np.where(matrix == 0, "", np.char.mod("%.2f", matrix))
 
-CMAP = "Blues"
-
-FONT_TITLE = 14
-FONT_LABEL = 12
-FONT_TICK = 10
-FONT_VALUE = 10
-
-FIG_SIZE = (7, 6)
-SAVE_DPI = 200
-OUTPUT_DIR = Path(__file__).parent
-
-
-# ═══════════════════════════════════════════════════════
-
-def build_matrix(vals: dict) -> np.ndarray:
-    return np.array([
-        [vals["TN"], vals["FP"]],
-        [vals["FN"], vals["TP"]],
-    ], dtype=float)
-
-
-def normalize_matrix(cm: np.ndarray, mode: str) -> np.ndarray:
-    if mode == "true":  # per baris (Recall)
-        row_sum = cm.sum(axis=1, keepdims=True)
-        return np.divide(cm, row_sum, where=row_sum != 0)
-
-    elif mode == "pred":  # per kolom (Precision)
-        col_sum = cm.sum(axis=0, keepdims=True)
-        return np.divide(cm, col_sum, where=col_sum != 0)
-
-    return cm
-
-
-def plot_cm(cm_raw: np.ndarray, model_name: str, output_path: Path):
-
-    # 🔥 SWAP AXIS (TRUE di X-axis)
-    cm_norm = normalize_matrix(cm_raw.copy(), NORMALIZE).T
-
-    print(f"\nNormalized Confusion Matrix - {model_name}")
-    print(cm_norm)  
-
-    fig, ax = plt.subplots(figsize=FIG_SIZE)
-
-    im = ax.imshow(cm_norm, cmap=CMAP, vmin=0, vmax=1)
-
-    cbar = plt.colorbar(im, ax=ax)
-    cbar.ax.yaxis.set_major_formatter(
-        ticker.PercentFormatter(xmax=1, decimals=0)
+    # Menggambar heatmap dengan anotasi teks yang sudah dikustomisasi
+    sns.heatmap(
+        matrix,
+        annot=annot_labels,  # Menggunakan teks kustom yang mengosongkan angka 0
+        fmt="",  # Kosongkan format otomatis karena data sudah berbentuk string
+        cmap="Blues",
+        xticklabels=labels,
+        yticklabels=labels,
+        vmin=0.0,
+        vmax=1.0,
+        ax=ax,
+        cbar=True,
     )
 
-    # Labels
-    ticks = np.arange(len(CLASS_LABELS))
-    ax.set_xticks(ticks)
-    ax.set_yticks(ticks)
+    # Ekstrak nama model saja (yolov8s atau yolov8m) lalu ubah huruf pertamanya jadi kapital (Yolov8s / Yolov8m)
+    if "yolov8s" in title:
+        model_name = "Yolov8s"
+    else:
+        model_name = "Yolov8m"
 
-    ax.set_xticklabels(CLASS_LABELS, fontsize=FONT_TICK)
-    ax.set_yticklabels(CLASS_LABELS, fontsize=FONT_TICK, rotation=90, va="center")
+    # Mengatur label sumbu dan judul atas sesuai format yang Anda minta
+    ax.set_title(f"Confusion Matrix Normalized - {model_name}", fontsize=12, pad=12)
+    ax.set_xlabel("True", fontsize=11, labelpad=10)
+    ax.set_ylabel("Predicted", fontsize=11, labelpad=10)
 
-    ax.set_xlabel("True Label", fontsize=FONT_LABEL)
-    ax.set_ylabel("Predicted Label", fontsize=FONT_LABEL)
-
-    # Title
-    ax.set_title(TITLE_TEMPLATE, fontsize=FONT_TITLE, pad=10)
-
-    # 🔥 Annotation (% only, clean journal style)
-    for i in range(2):
-        for j in range(2):
-            val = cm_norm[i, j]
-            color = "white" if val > 0.5 else "black"
-
-            ax.text(
-                j, i,
-                f"{val:.2%}",
-                ha="center",
-                va="center",
-                fontsize=FONT_VALUE,
-                fontweight="bold",
-                color=color
-            )
-
+    # Mengatur margin otomatis agar teks tidak terpotong saat disimpan
     plt.tight_layout()
-    plt.savefig(output_path, dpi=SAVE_DPI, bbox_inches="tight")
-    plt.close()
 
-    print(f"Saved -> {output_path}")
+    # Menyimpan gambar menjadi file PNG dengan kualitas tinggi (dpi=300)
+    filename = f"{title}.png"
+    plt.savefig(filename, dpi=300, bbox_inches="tight")
+    print(f"Berhasil menyimpan: {filename}")
 
-
-def main():
-    OUTPUT_DIR.mkdir(exist_ok=True)
-
-    for model_name, vals in MODELS.items():
-        cm_raw = build_matrix(vals)
-
-        safe_name = model_name.replace(" ", "_").replace("/", "-")
-        out_path = OUTPUT_DIR / f"cm_normalized_{safe_name}.png"
-
-        print(f"\n[{model_name}]")
-
-        plot_cm(cm_raw, model_name, out_path)
-
-    print("\nDone.")
-
-
-if __name__ == "__main__":
-    main()
+    # Menutup plot saat ini agar memori tidak penuh
+    plt.close(fig)

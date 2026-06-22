@@ -15,8 +15,10 @@ from pathlib import Path
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MODELS = {
-    "YOLOv8m-AdamW": {"TP": 183, "FP": 32, "FN": 70, "TN": 156},
-    "YOLOv8s-AdamW": {"TP": 184, "FP": 26, "FN": 69, "TN": 157},
+    "YOLOv8s-Imbalanced": {"TP": 133, "FP": 42, "FN": 144, "TN": 165},
+    "YOLOv8s-Oversampling": {"TP": 200, "FP": 23, "FN": 77, "TN": 165},
+    "YOLOv8m-Imbalanced": {"TP": 130, "FP": 32, "FN": 147, "TN": 165},
+    "YOLOv8m-Oversampling": {"TP": 225, "FP": 48, "FN": 52, "TN": 165},
 }
 
 # Label sumbu — ganti sesuai domain jurnal
